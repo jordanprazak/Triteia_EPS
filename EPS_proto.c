@@ -1,294 +1,256 @@
+/*      C code to implement EPS protection Schemes        */
+#include <stdio.h>
+#include <stdint.h>
+#include "EPS.h"
+#include "EPS_proto.h"
 
-                    /*      C code to implement EPS protection Schemes        */
+int main() {
 
-/******************************************************************************/
-#include<stdio.h>
-#include<stdint.h>
-#include"EPS.h"
-void main() 
-{
-//init variables
-unsigned int streamenabled; //boolean to determine wether to stream to CHREC
+  // Boolean to determine whether to send data (stream) to CHREC processor
+  unsigned int streamenabled;
 
-//solar panels
-unsigned int solar0_iv;
-int16_t solar0_i;
-int16_t solar0_v;
-unsigned int solar1_iv;
-int16_t solar1_i;
-int16_t solar1_v;
-unsigned int solar2_iv;
-int16_t solar2_i;
-int16_t solar2_v;
-unsigned int solar3_iv;
-int16_t solar3_i;
-int16_t solar3_v;
+  // 32 bit iv values: high 16 will be current, low 16 will be voltage (TODO might be flipped)
+  // Solar panel output
+  struct iv_int solar0_iv, solar1_iv, solar2_iv, solar3_iv;
 
+  // BCR output
+  struct iv_int bcr_iv;
 
-//bcr output
-unsigned int bcr_iv;
-int16_t bcr_i;
-int16_t bcr_v;
+  // Battery output
+  struct iv_int batt_iv;
 
-//battery output
-unsigned int batt_iv;
-int16_t batt_i;
-int16_t batt_v;
-//Power rail outputs
-unsigned int rail33_iv;
-int16_t rail33_i;
-int16_t rail33_v;
-unsigned int rail5_iv;
-int16_t rail5_i;
-int16_t rail5_v;
-unsigned int rail12_iv;
-int16_t rail12_i;
-int16_t rail12_v;
-unsigned int rail28_iv;
-int16_t rail28_i;
-int16_t rail28_v;
-unsigned int batt_temp;
+  // Power rail outputs
+  struct iv_int rail33_iv, rail5_iv, rail12_iv, rail28_iv;
 
-//export GPIO pins for use
-gpio_export(EPS_OUT_EN);
-gpio_export(BCR_OUT_EN);
-gpio_export(BCR0_EN);
-gpio_export(BCR1_EN);
-gpio_export(BCR2_EN);
-gpio_export(BCR3_EN);
-gpio_export(PDM0_EN);
-gpio_export(PDM1_EN);
-gpio_export(PDM2_EN);
-gpio_export(PDM3_EN);
-gpio_export(PDM4_EN);
-gpio_export(PDM5_EN);
-gpio_export(PDM6_EN);
-gpio_export(PDM7_EN);
-gpio_export(PDM8_EN);
-gpio_export(PDM9_EN);
-gpio_export(PDM10_EN);
-gpio_export(PDM11_EN);
-gpio_export(PDM12_EN);
-gpio_export(HEATER_EN);
-gpio_export(TESTMODE_PIN);
+  // Battery temperature
+  unsigned int batt_temp;
 
-//set gpio pin directions
-gpio_set_dir(EPS_OUT_EN, 1);
+  // GPIO pins
+  int BCR_EN[] = { BCR0_EN, BCR1_EN, BCR2_EN, BCR3_EN };
+  int PDM_EN[] = { PDM0_EN, PDM1_EN, PDM2_EN, PDM3_EN, PDM4_EN, PDM5_EN,
+                    PDM6_EN, PDM7_EN, PDM8_EN, PDM9_EN, PDM10_EN, PDM11_EN,
+                    PDM12_EN };
 
-//set interrupt service routine for each latching current limiter
-int16_t isr_latching_current_limiter();
+  // Export GPIO pins for use
+  gpio_export( EPS_OUT_EN );
+  gpio_export( BCR_OUT_EN );
+  for (int i : BCR_EN) {
+    gpio_export( i );
+  }
+  for (int i : PDM_EN) {
+    gpio_export( i );
+  }
+  gpio_export( HEATER_EN );
+  gpio_export( TESTMODE_PIN );
 
-//set interrupt service routine for the UART
-int16_t isr_UART();
+  // Set gpio pin directions
+  gpio_set_dir( EPS_OUT_EN, 1 );
 
-                                                   
-/******************************************************************************/
-//Power on sequence
-/*verify that the cubesat was deployed by checking that there is a positive 
-current on the output of the bcr*/
-if (gpio_get_value(TESTMODE_PIN) == 1)
-{//The cubesat has been powered on into flight mode
-	
-	//measure battery voltage until it comes into an acceptable range	
-	do 
-	{
-		batt_iv = get_iv_INA3221(0,0);
-		batt_v = (int16_t)(batt_iv >> 16);
-	} while(batt_v < DEPLOYED_BATT_LOW || batt_v > DEPLOYED_BATT_HIGH); 
-	
-	/*check solar panel and voltage until a voltage and current are present on 
-	at least one*/
-	do 
-	{
-		//check that there is voltage and current coming from one of the 
-		//solar panels
-		solar0_iv = get_iv_INA3221(0,0);
-		solar0_i = (int16_t)solar0_iv;
-		solar0_v = (int16_t)(solar0_iv >> 16);
-		solar1_iv = get_iv_INA3221(0,0);
-		solar1_i = (int16_t)solar1_iv;
-		solar1_v = (int16_t)(solar1_iv >> 16);
-		solar2_iv = get_iv_INA3221(0,0);
-		solar2_i = (int16_t)solar2_iv;
-		solar2_v = (int16_t)(solar2_iv >> 16);
-		solar3_iv = get_iv_INA3221(0,0);
-		solar3_i = (int16_t)solar3_iv;
-		solar3_v = (int16_t)(solar3_iv >> 16);
-	} while ((solar0_v > DEPLOYED_SOLAR_V && solar0_i > DEPLOYED_SOLAR_I)||\
-	(solar1_v > DEPLOYED_SOLAR_V && solar1_i > DEPLOYED_SOLAR_I) ||\
-	(solar2_v > DEPLOYED_SOLAR_V && solar2_i > DEPLOYED_SOLAR_I) ||\
-	(solar3_v > DEPLOYED_SOLAR_V && solar3_i > DEPLOYED_SOLAR_I));
-	
-	/*cubesat has been successfully deployed, wait 15 seconds and then power on
-	all the loads*/
-	usleep(1500000);
-	
-	gpio_set_value(EPS_OUT_EN,HIGH);	//enable EPS output
-	gpio_set_value(PDM0_EN,HIGH);		//enable load 0
-	gpio_set_value(PDM1_EN,HIGH);		//enable load 1
-	gpio_set_value(PDM2_EN,HIGH);		//enable load 2
-	gpio_set_value(PDM3_EN,HIGH);		//enable load 3
-	gpio_set_value(PDM4_EN,HIGH);				//enable load 4
-	gpio_set_value(PDM5_EN,HIGH);			//enable load 5
-	gpio_set_value(PDM6_EN,HIGH);			//enable load 6
-	gpio_set_value(PDM7_EN,HIGH);			//enable load 7
-	gpio_set_value(PDM8_EN,HIGH);			//enable load 8
-	gpio_set_value(PDM9_EN,HIGH);			//enable load 9
-	gpio_set_value(PDM10_EN,HIGH);			//enable load 10
-	gpio_set_value(PDM11_EN,HIGH);			//enable load 11
-	gpio_set_value(PDM12_EN,HIGH);			//enable load 12
-	
-}
-else 
-{
-	//Cubesat has been powered on into test mode
-	
-	//measure battery voltage until it comes into an acceptable range	
-	do 
-	{
-		batt_iv = get_iv_INA3221(0,0);
-		batt_v = (int16_t)(batt_iv >> 16);
-	} while(batt_v > TESTMODE_BATT); 
-	//disable BCR outputs
-	gpio_set_value(BCR0_EN,0);
-	gpio_set_dir(BCR0_EN, 1);
-	gpio_set_value(BCR1_EN,0);
-	gpio_set_dir(BCR1_EN, 1);
-	gpio_set_value(BCR2_EN,0);
-	gpio_set_dir(BCR2_EN, 1);
-	gpio_set_value(BCR3_EN,0);
-	gpio_set_dir(BCR3_EN, 1);
-	
-	//power on the CHREC processor and any other necessary loads/
-	gpio_set_value(EPS_OUT_EN,HIGH);	//enable EPS output
-	gpio_set_value(PDM0_EN,HIGH);		//enable load 0
-}
+  /****************************************************************************
+   *                          EPS Power-on sequence                           *
+   ****************************************************************************/
 
+  //The cubesat has been powered on into flight mode
+  if( gpio_get_value( TESTMODE_PIN ) == 1 )
+  {
 
-/******************************************************************************/
+    // TODO First, we need to make sure EVERYTHING is OFF (latched, disconnect).
 
-/*Main execution loop goes here
- *sample all of the iv channels
- *sample_iv will be a function that takes in which chip to monitor and *returns an unsigned int that contains a voltage, current, and power *measurement*/
-while(1) 
-{
-    solar0_iv = get_iv_INA3221(0,0);
-	solar1_iv = get_iv_INA3221(0,1);
-	solar2_iv = get_iv_INA3221(0,2);
-	solar3_iv = get_iv_INA3221(1,0);
-	bcr_iv = get_iv_INA3221(1,1);
-    batt_iv = get_iv_INA3221(1,2);
-    rail33_iv = get_iv_INA3221(2,0);
-    rail5_iv = get_iv_INA3221(2,1);
-    rail12_iv = get_iv_INA3221(2,2);
-    rail28_iv = get_iv_INA260(0);
-    batt_temp = mmap_adc_read_raw(0);  //sample the battery temperature
+  	// Measure battery voltage until it comes into an acceptable range
+  	do {
+  		batt_iv.iv = get_iv_INA3221( 0, 0 );
+  		batt_iv.v = (int16_t) (batt_iv.iv >> 16);
+  	} while( batt_iv.v < DEPLOYED_BATT_LOW || batt_iv.v > DEPLOYED_BATT_HIGH );
 
-/******************************************************************************/
+    // Next, check to see if there is voltage and current coming from one of the
+    // solar panels. If so, the cubesat is deployed.
+  	do {
+  		solar0_iv.iv = get_iv_INA3221( 0, 0 );
+  		solar0_iv.i = (int16_t) solar0_iv.iv;
+  		solar0_iv.v = (int16_t) (solar0_iv.iv >> 16);
 
-    //check for battery over voltage
-    if (batt_v > BATT_OVER_VOLTAGE) 
-        //disconnect bcr
-        gpio_set_value(BCR_OUT_EN,0);		
-    else 
-        gpio_set_value(BCR_OUT_EN,1);
+      solar1_iv.iv = get_iv_INA3221( 0, 0 );
+  		solar1_iv.i = (int16_t) solar1_iv.iv;
+  		solar1_iv.v = (int16_t) (solar1_iv.iv >> 16);
 
-/**************************************************************************************************/
+      solar2_iv.iv = get_iv_INA3221( 0, 0 );
+  		solar2_iv.i = (int16_t) solar2_iv.iv;
+  		solar2_iv.v = (int16_t) (solar2_iv.iv >> 16);
 
-    //check for battery under voltage against threshold
-    if (batt_v < BATT_UNDER_VOLTAGE) 
-    {
-        //disable rails
-        gpio_set_value( PDM0_EN, 0); 
-        gpio_set_value( PDM1_EN, 0); 
-		gpio_set_value( PDM2_EN, 0); 
-		gpio_set_value( PDM3_EN, 0); 
-		gpio_set_value( PDM4_EN, 0); 
-		gpio_set_value( PDM5_EN, 0); 
-		gpio_set_value( PDM6_EN, 0); 
-		gpio_set_value( PDM7_EN, 0); 
-		gpio_set_value( PDM8_EN, 0); 
-		gpio_set_value( PDM9_EN, 0); 
-		gpio_set_value( PDM10_EN, 0); 
-		gpio_set_value( PDM11_EN, 0); 
-		gpio_set_value( PDM12_EN, 0); 
+      solar3_iv.iv = get_iv_INA3221( 0, 0 );
+  		solar3_iv.i = (int16_t) solar3_iv.iv;
+  		solar3_iv.v = (int16_t) (solar3_iv.iv >> 16);
+
+  	} while( ( solar0_iv.v > DEPLOYED_SOLAR_V && solar0_iv.i > DEPLOYED_SOLAR_I ) ||
+          	( solar1_iv.v > DEPLOYED_SOLAR_V && solar1_iv.i > DEPLOYED_SOLAR_I ) ||
+          	( solar2_iv.v > DEPLOYED_SOLAR_V && solar2_iv.i > DEPLOYED_SOLAR_I ) ||
+          	( solar3_iv.v > DEPLOYED_SOLAR_V && solar3_iv.i > DEPLOYED_SOLAR_I )
+           );
+
+  	// Cubesat has been successfully deployed. Wait at least 15 seconds, and
+    // then power on all the loads.
+  	usleep( 1500000 );
+
+  	gpio_set_value( EPS_OUT_EN, HIGH ); //enable EPS output
+    for (int i : PDM_EN) {
+      gpio_set_value( i, HIGH );	//enable load 0
     }
-    else 
-    {
-        //enable rails
-       //disable rails
-        gpio_set_value( PDM0_EN, 1); 
-        gpio_set_value( PDM1_EN, 1); 
-		gpio_set_value( PDM2_EN, 1); 
-		gpio_set_value( PDM3_EN, 1); 
-		gpio_set_value( PDM4_EN, 1); 
-		gpio_set_value( PDM5_EN, 1); 
-		gpio_set_value( PDM6_EN, 1); 
-		gpio_set_value( PDM7_EN, 1); 
-		gpio_set_value( PDM8_EN, 1); 
-		gpio_set_value( PDM9_EN, 1); 
-		gpio_set_value( PDM10_EN, 1); 
-		gpio_set_value( PDM11_EN, 1); 
-		gpio_set_value( PDM12_EN, 1); 
+  }
+
+  // Cubesat has been powered on into test mode
+  else {
+
+    // Measure battery voltage until it comes into an acceptable range
+  	do {
+  		batt_iv.iv = get_iv_INA3221( 0, 0 );
+  		batt_iv.v = (int16_t) (batt_iv.iv >> 16);
+  	} while( batt_iv.v > TESTMODE_BATT );
+
+  	// Disable BCR outputs
+    for (int i : BCR_EN) {
+      gpio_set_value( i, 0 );
+    	gpio_set_dir( i, 1 );
     }
-/**************************************************************************************************/
 
-    //if there is an over current on any rails, disable the rail, if not, keep them on
-    // if (rail33_i > 33RAIL_OVER_CURRENT) 
-        // set_pdm_en( 0, 0);
-    // else 
-        // set_pdm_en( 0 , 1);
+  	// Power on the CHREC processor and any other necessary loads.
+  	gpio_set_value( EPS_OUT_EN, HIGH );	// Enable EPS output
+  	gpio_set_value( PDM0_EN, HIGH );		// Enable load 0
+  }
 
-    // if (rail5_i > 5RAIL_OVER_CURRENT) 
-        // set_pdm_en( 1, 0);
-    // else 
-        // set_pdm_en( 1 , 1);
+  /*Main execution loop goes here
+   *sample all of the iv channels
+   *sample_iv will be a function that takes in which chip to monitor and
+   *returns an unsigned int that contains a voltage, current, and power
+   *measurement*/
+  while( 1 ) {
 
-    // if (rail12_i > 12RAIL_OVER_CURRENT) 
-        // set_pdm_en( 2, 0);
-    // else 
-        // set_pdm_en( 2 , 1);
+    /**************************************************************************
+     *             Voltage, Current, and Temperature Monitoring               *
+     **************************************************************************/
 
-    // if (rail28_i > 28RAIL_OVER_CURRENT) 
-        // set_pdm_en( 3, 0);
-    // else 
-        // set_pdm_en( 3 , 1);
+    solar0_iv.iv = get_iv_INA3221( 0, 0 );
+  	solar1_iv.iv = get_iv_INA3221( 0, 1 );
+  	solar2_iv.iv = get_iv_INA3221( 0, 2 );
+  	solar3_iv.iv = get_iv_INA3221( 1, 0 );
+  	bcr_iv.iv = get_iv_INA3221( 1, 1 );
+    batt_iv.iv = get_iv_INA3221( 1, 2 );
+    rail33_iv.iv = get_iv_INA3221( 2, 0 );
+    rail5_iv.iv = get_iv_INA3221( 2, 1 );
+    rail12_iv.iv = get_iv_INA3221( 2, 2 );
+    rail28_iv.iv = get_iv_INA260( 0 );
 
-/**************************************************************************************************/
+    batt_temp = mmap_adc_read_raw( 0 );
 
-    //if the battery temp is low, turn on heater until desired temp is reached
-    if (batt_temp < HEATER_ON_TEMP) 
-        gpio_set_value(HEATER_EN, 1); 
-    else if (batt_temp > HEATER_OFF_TEMP) 
-        gpio_set_value(HEATER_EN, 0);
+    /**************************************************************************
+     *                       Battery: Over-voltage Check                      *
+     **************************************************************************/
 
-/**************************************************************************************************/
-	//send data is unused for the subsystem prototype
-    // if the stream is enabled, send data to CHREK processor
-    //this process may run on a separate timer instead
-    //if (streamenabled==1) 
-        //send_data();
-	//usleep(1000000);
+    // If battery voltage is too high, open BCR switch
+    if( batt_iv.v > BATT_OVER_VOLTAGE ) {
+      gpio_set_value( BCR_OUT_EN, 0 );
+    }
+    else {
+
+      // TODO we need to figure out a turn-on BCR voltage after over voltage
+      gpio_set_value( BCR_OUT_EN, 1 );
+    }
+
+    /**************************************************************************
+     *                       Battery: Under-voltage Check                     *
+     **************************************************************************/
+
+     // If battery voltage is too low, open PCM switch
+      if( batt_iv.v < BATT_UNDER_VOLTAGE ) {
+        for (int i : PDM_EN) {
+          gpio_set_value( i, 0 );
+        }
+      }
+      else {
+
+        // TODO we need to figure out a turn-on PCM after under voltage
+        for (int i : PDM_EN) {
+          gpio_set_value( i, 1 );
+        }
+      }
+
+    /**************************************************************************
+     *                     Power Rails: Over-current Check                    *
+     **************************************************************************/
+
+     // TODO
+     // So technically, we have control of every payload.
+     // Since the re-latching time is very quick, it will have no effect with
+     // the 1 Hz loop code checking 3 times (3 seconds). We will need an
+     // internal static counter. If after 3 seconds it's still latched, we have
+     // a permanent fault.
+
+      // if there is an over current on any rails, disable the rail, if not, keep them on
+      // if (rail33_i > 33RAIL_OVER_CURRENT)
+          // set_pdm_en( 0, 0 );
+      // else
+          // set_pdm_en( 0, 1 );
+
+      // if (rail5_i > 5RAIL_OVER_CURRENT)
+          // set_pdm_en( 1, 0 );
+      // else
+          // set_pdm_en( 1, 1 );
+
+      // if (rail12_i > 12RAIL_OVER_CURRENT)
+          // set_pdm_en( 2, 0 );
+      // else
+          // set_pdm_en( 2, 1 );
+
+      // if (rail28_i > 28RAIL_OVER_CURRENT)
+          // set_pdm_en( 3, 0 );
+      // else
+          // set_pdm_en( 3, 1 );
+
+    /**************************************************************************
+     *                       Battery Temperature Check                        *
+     **************************************************************************/
+
+      // If the battery temperature is too low, turn on heater until the
+      // desired temperature is reached.
+      if( batt_temp < HEATER_ON_TEMP ) {
+        gpio_set_value( HEATER_EN, 1 );
+      }
+      else if( batt_temp > HEATER_OFF_TEMP ) {
+        gpio_set_value( HEATER_EN, 0 );
+      }
+
+    /**************************************************************************
+     *                     Sending Data to CHREC processor                    *
+     **************************************************************************/
+  	//send data is unused for the subsystem prototype
+      // if the stream is enabled, send data to CHREK processor
+      //this process may run on a separate timer instead
+      //if (streamenabled==1)
+          //send_data();
+
+    // Sample at a rate of 1 Hz
+  	usleep(1000000);
+  }
+
+  return EXIT_SUCCESS;
 }
 
-return;
-}
+
 /*********************************************************************************************************/
 //uart function is not implemented for the flat sat prototype
-//int isr_UART() 
-//{	
-/*interrupt service routine for the UART interrupt
- *This code will operate whenever the UART receives data from the chrec 
- *processor*/
-//read_uart_data() 
-//read data in from the uart transceiver
-//switch(command) 
+//int isr_UART()
 //{
-	//case 10 : 
+/*interrupt service routine for the UART interrupt
+ *This code will operate whenever the UART receives data from the chrec
+ *processor*/
+//read_uart_data()
+//read data in from the uart transceiver
+//switch(command)
+//{
+	//case 10 :
 		//streamenabled = TRUE; //start data streaming
-	//case 11 : 
+	//case 11 :
 		//streamenabled = FALSE; //stop data streaming
-	//more cases can be added in same manner	 
+	//more cases can be added in same manner
 //}
 //return 0;
 //}
@@ -296,19 +258,19 @@ return;
 /*************************************************************************  ***/
 
 // int isr_latching_current_limiter()
-// {	
+// {
 // /*if this routine is called, then a latching current limiter has latched, there has been an OC or OV  situation */
 //first find current state values for each lcl
 // get_lcl_fault_values();
 
-// for (i=0; i<=3; i++) 
-// {	
+// for (i=0; i<=3; i++)
+// {
 ////check all the lcl fault lines
-	// if (lcl_fault(i) == 1 && ignore_lcl_fault(i) == 0) 
+	// if (lcl_fault(i) == 1 && ignore_lcl_fault(i) == 0)
     // {
 	    // fault_count = 0;
-	    // while (fault_count <=4) 
-        // {	
+	    // while (fault_count <=4)
+        // {
             //attempt the reset 5 times
 			//if a fault line is high, attempt to reset it
 			// set_pdm_en( i, 0);
@@ -316,17 +278,17 @@ return;
 			// set_pdm_en( i, 1);
 			// usleep(1000); 	//wait 1 millisecond to see if the reset worked
 
-			// if (lcl_fault(i) == 0) 
+			// if (lcl_fault(i) == 0)
                 // break;	//if the fault cleared, exit the loop
-			// fault_count++; 
+			// fault_count++;
 
             ////increment fault count if we failed to unlatch the current limiter
-            // if (fault_count == 5) 
+            // if (fault_count == 5)
             // {
                 // set_pdm_fault( i, 1);
                 // /*if we fail after 5 tries, set a fault condition to notify the chrek processor*/
-                // ignore_lcl_fault(i) = 1; 	
-                //ignore the fault in the future since we can’t clear it 
+                // ignore_lcl_fault(i) = 1;
+                //ignore the fault in the future since we can’t clear it
 
             // }
         // }
