@@ -1,6 +1,10 @@
 #ifndef EPS_H_
 #define EPS_H_
 
+#define TEMP_CALIBRATION 7.3
+#define INA3221_OFFSET -0.130
+#define CONVERSION_TIME_INA3221 8500
+#define CONVERSION_TIME_INA260 1100
 #define DEPLOYED_BATT_LOW 0
 #define DEPLOYED_BATT_HIGH 0
 #define DEPLOYED_SOLAR_V 0
@@ -13,39 +17,38 @@
 #define BATT_OVER_VOLTAGE 8.4
 
 //GPIO PIN Definitions
-#define EPS_OUT_EN		20
-#define BCR_OUT_EN		26
-#define BCR0_EN			27
-#define BCR1_EN			44
-#define BCR2_EN			45
-#define BCR3_EN 		46
-#define PDM0_EN			47
-#define PDM1_EN			48
-#define PDM2_EN			49
-#define PDM3_EN			60
-#define PDM4_EN			61
-#define PDM5_EN			65
-#define PDM6_EN 		66
-#define PDM7_EN			67
-#define PDM8_EN			68
-#define PDM9_EN			69
-#define PDM10_EN		112
-#define PDM11_EN		115
-#define PDM12_EN		117
-#define HEATER_EN		71
-#define TESTMODE_PIN	73
-#define PDM1_FAULT		74
-#define PDM2_FAULT		75
-#define PDM3_FAULT		76
-#define PDM4_FAULT		77
-#define PDM5_FAULT		86
-#define PDM6_FAULT 		87
-#define PDM7_FAULT		88
-#define PDM8_FAULT		89
-#define PDM9_FAULT		32
-#define PDM10_FAULT		33
-#define PDM11_FAULT		36
-#define PDM12_FAULT		37
+#define PCM_IN_EN		70
+#define BCR_OUT_EN		71
+#define BCR0_EN			00
+#define BCR1_EN			00
+#define BCR2_EN			00
+#define BCR3_EN 		00
+#define PDM0_EN			72	//28 valve en
+#define PDM1_EN			60	//28trcv en
+#define PDM2_EN			67	//12v trcv en
+#define PDM3_EN			81	//5V en
+#define PDM4_EN			10	//12v rw en
+#define PDM5_EN			49	//33 en
+#define PDM6_EN 		00
+#define PDM7_EN			00
+#define PDM8_EN			00
+#define PDM9_EN			00
+#define PDM10_EN		00
+#define PDM11_EN		00
+#define HEATER_EN		00
+#define TESTMODE_PIN	00
+#define PDM0_FAULT		73	//28 valv fault
+#define PDM1_FAULT		31	//28trcv fault
+#define PDM2_FAULT		66	//12v trcv fault
+#define PDM3_FAULT		80	//5V fault
+#define PDM4_FAULT 		11	//12v rw fault
+#define PDM5_FAULT		48	//33 fault
+#define PDM6_FAULT		20	//5v imu fault
+#define PDM7_FAULT		00
+#define PDM8_FAULT		00
+#define PDM9_FAULT		00
+#define PDM10_FAULT		00
+#define PDM11_FAULT		00
 
 
 
