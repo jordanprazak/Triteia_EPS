@@ -1,4 +1,9 @@
-/*      C code to implement EPS protection Schemes        */
+/*SEDS TRITEIA POWER SYSTEMS TEAM prototype EPS code      
+ *C code to implement EPS protection Schemes        
+ *
+ *Authored by Jordan Prazak and David TU
+ *
+ */
 #include <stdio.h>
 #include <stdint.h>
 #include "EPS.h"
@@ -9,7 +14,8 @@ int main() {
   // Boolean to determine whether to send data (stream) to CHREC processor
   unsigned int streamenabled;
 
-  // 32 bit iv values: high 16 will be current, low 16 will be voltage (TODO might be flipped)
+  // 32 bit iv values: highest 2 bytes will be current, 
+  //lowest 2 bytes will be voltage (TODO might be flipped)
   // Solar panel output
   struct iv_int solar0_iv, solar1_iv, solar2_iv, solar3_iv;
 
@@ -32,6 +38,7 @@ int main() {
                     PDM12_EN };
 
   // Export GPIO pins for use
+  //TODO Dont need export, but we will need MUX
   gpio_export( EPS_OUT_EN );
   gpio_export( BCR_OUT_EN );
   for (int i : BCR_EN) {
