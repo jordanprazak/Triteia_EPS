@@ -1,7 +1,6 @@
 /*      C code to implement EPS protection Schemes        */
 #include <stdio.h>
 #include <stdint.h>
-#include "EPS.h"
 #include "EPS_proto.h"
 
 int main() {
@@ -9,7 +8,10 @@ int main() {
   // Boolean to determine whether to send data (stream) to CHREC processor
   unsigned int streamenabled;
 
-  // 32 bit iv values: high 16 will be current, low 16 will be voltage (TODO might be flipped)
+  // 32 bit iv values: high 16 will be current, low 16 will be voltage
+
+  // TODO all get_iv_INA3221 parameters are incorrect
+
   // Solar panel output
   struct iv_int solar0_iv, solar1_iv, solar2_iv, solar3_iv;
 
@@ -25,61 +27,86 @@ int main() {
   // Battery temperature
   unsigned int batt_temp;
 
-  // GPIO pins
-  int BCR_EN[] = { BCR0_EN, BCR1_EN, BCR2_EN, BCR3_EN };
-  int PDM_EN[] = { PDM0_EN, PDM1_EN, PDM2_EN, PDM3_EN, PDM4_EN, PDM5_EN,
-                    PDM6_EN, PDM7_EN, PDM8_EN, PDM9_EN, PDM10_EN, PDM11_EN,
-                    PDM12_EN };
+  // Payload faults
+  struct PDM_fault faults[NUM_PDM] = { 0 };
 
   // Export GPIO pins for use
   gpio_export( EPS_OUT_EN );
   gpio_export( BCR_OUT_EN );
-  for (int i : BCR_EN) {
-    gpio_export( i );
+  int i = 0;
+  while( BCR_EN[i] != NULL ) {
+    gpio_export( BCR_EN[i++] );
   }
-  for (int i : PDM_EN) {
-    gpio_export( i );
+  i = 0;
+  while( PDM_EN[i] != NULL ) {
+    gpio_export( PDM_EN[i++] );
   }
   gpio_export( HEATER_EN );
   gpio_export( TESTMODE_PIN );
 
-  // Set gpio pin directions
+  // Set GPIO pin directions
   gpio_set_dir( EPS_OUT_EN, 1 );
+  gpio_set_dir( BCR_OUT_EN, 1 );
+  i = 0;
+  while( BCR_EN[i] != NULL ) {
+    gpio_set_dir( BCR_EN[i++], 0 );
+  }
+  i = 0;
+  while( PDM_EN[i] != NULL ) {
+    gpio_set_dir( PDM_EN[i++], 1 );
+  }
+
+	gpio_set_dir( HEATER_EN, 1 );
+
+  i = 0;
+  while( PDM_FAULT[i] != NULL ) {
+    gpio_set_dir( PDM_FAULT[i++], 0 );
+  }
 
   /****************************************************************************
    *                          EPS Power-on sequence                           *
    ****************************************************************************/
 
   //The cubesat has been powered on into flight mode
-  if( gpio_get_value( TESTMODE_PIN ) == 1 )
-  {
+  if( gpio_get_value( TESTMODE_PIN ) == 1 ) {
 
     // TODO First, we need to make sure EVERYTHING is OFF (latched, disconnect).
+    gpio_set_value( PCM_IN_EN, LOW );
+  	gpio_set_value( BCR_OUT_EN, LOW );
+    i = 0;
+    while( BCR_EN[i] != NULL ) {
+      gpio_set_value( BCR_EN[i++], LOW );
+    }
+    i = 0;
+    while( PDM_EN[i] != NULL ) {
+      gpio_set_value( PDM_EN[i++], LOW );
+    }
+    gpio_set_value( HEATER_EN, LOW );
 
   	// Measure battery voltage until it comes into an acceptable range
   	do {
   		batt_iv.iv = get_iv_INA3221( 0, 0 );
-  		batt_iv.v = (int16_t) (batt_iv.iv >> 16);
+  		batt_iv.v = (int16_t) batt_iv.iv;
   	} while( batt_iv.v < DEPLOYED_BATT_LOW || batt_iv.v > DEPLOYED_BATT_HIGH );
 
     // Next, check to see if there is voltage and current coming from one of the
     // solar panels. If so, the cubesat is deployed.
   	do {
   		solar0_iv.iv = get_iv_INA3221( 0, 0 );
-  		solar0_iv.i = (int16_t) solar0_iv.iv;
-  		solar0_iv.v = (int16_t) (solar0_iv.iv >> 16);
+      solar0_iv.i = (int16_t) (solar0_iv.iv >> 16);
+  		solar0_iv.v = (int16_t) solar0_iv.iv;
 
       solar1_iv.iv = get_iv_INA3221( 0, 0 );
-  		solar1_iv.i = (int16_t) solar1_iv.iv;
-  		solar1_iv.v = (int16_t) (solar1_iv.iv >> 16);
+  		solar1_iv.i = (int16_t) (solar1_iv.iv >> 16);
+      solar1_iv.v = (int16_t) solar1_iv.iv;
 
       solar2_iv.iv = get_iv_INA3221( 0, 0 );
-  		solar2_iv.i = (int16_t) solar2_iv.iv;
-  		solar2_iv.v = (int16_t) (solar2_iv.iv >> 16);
+  		solar2_iv.i = (int16_t) (solar2_iv.iv >> 16);
+      solar2_iv.v = (int16_t) solar2_iv.iv;
 
       solar3_iv.iv = get_iv_INA3221( 0, 0 );
-  		solar3_iv.i = (int16_t) solar3_iv.iv;
-  		solar3_iv.v = (int16_t) (solar3_iv.iv >> 16);
+  		solar3_iv.i = (int16_t) (solar3_iv.iv >> 16);
+      solar3_iv.v = (int16_t) solar3_iv.iv;
 
   	} while( ( solar0_iv.v > DEPLOYED_SOLAR_V && solar0_iv.i > DEPLOYED_SOLAR_I ) ||
           	( solar1_iv.v > DEPLOYED_SOLAR_V && solar1_iv.i > DEPLOYED_SOLAR_I ) ||
@@ -92,9 +119,11 @@ int main() {
   	usleep( 1500000 );
 
   	gpio_set_value( EPS_OUT_EN, HIGH ); //enable EPS output
-    for (int i : PDM_EN) {
-      gpio_set_value( i, HIGH );	//enable load 0
+    i = 0;
+    while( PDM_EN[i] != NULL ) {
+      gpio_set_value( PDM_EN[i++], HIGH );
     }
+
   }
 
   // Cubesat has been powered on into test mode
@@ -103,14 +132,14 @@ int main() {
     // Measure battery voltage until it comes into an acceptable range
   	do {
   		batt_iv.iv = get_iv_INA3221( 0, 0 );
-  		batt_iv.v = (int16_t) (batt_iv.iv >> 16);
+  		batt_iv.v = (int16_t) batt_iv.iv;
   	} while( batt_iv.v > TESTMODE_BATT );
 
   	// Disable BCR outputs
-    for (int i : BCR_EN) {
-      gpio_set_value( i, 0 );
-    	gpio_set_dir( i, 1 );
-    }
+    // for( int i : BCR_EN ) {
+    //   gpio_set_value( i, 0 );
+    // 	gpio_set_dir( i, 1 );
+    // }
 
   	// Power on the CHREC processor and any other necessary loads.
   	gpio_set_value( EPS_OUT_EN, HIGH );	// Enable EPS output
@@ -127,19 +156,29 @@ int main() {
     /**************************************************************************
      *             Voltage, Current, and Temperature Monitoring               *
      **************************************************************************/
+    // Trigger a measurement on the IV monitors
+ 		config_INA3221( 0 );
+ 		config_INA3221( 1 );
+ 		config_INA3221( 2 );
+ 		config_INA260( 0 );
+ 		usleep(CONVERSION_TIME_INA3221);
 
-    solar0_iv.iv = get_iv_INA3221( 0, 0 );
-  	solar1_iv.iv = get_iv_INA3221( 0, 1 );
-  	solar2_iv.iv = get_iv_INA3221( 0, 2 );
-  	solar3_iv.iv = get_iv_INA3221( 1, 0 );
-  	bcr_iv.iv = get_iv_INA3221( 1, 1 );
-    batt_iv.iv = get_iv_INA3221( 1, 2 );
-    rail33_iv.iv = get_iv_INA3221( 2, 0 );
-    rail5_iv.iv = get_iv_INA3221( 2, 1 );
-    rail12_iv.iv = get_iv_INA3221( 2, 2 );
-    rail28_iv.iv = get_iv_INA260( 0 );
+    solar0_iv.iv = get_iv_INA3221( 0, 0 ); // Demo: solar3
+  	solar1_iv.iv = get_iv_INA3221( 0, 1 ); // Demo: bcr
+  	solar2_iv.iv = get_iv_INA3221( 0, 2 ); // Demo: batt
+  	solar3_iv.iv = get_iv_INA3221( 1, 0 ); // Demo: rail3.3
+  	bcr_iv.iv = get_iv_INA3221( 1, 1 ); // Demo: rail5
+    batt_iv.iv = get_iv_INA3221( 1, 2 ); // Demo: rail12
+    rail33_iv.iv = get_iv_INA3221( 2, 0 ); // Demo: solar0
+    rail5_iv.iv = get_iv_INA3221( 2, 1 ); // Demo: solar1
+    rail12_iv.iv = get_iv_INA3221( 2, 2 ); // Demo: solar2
+    rail28_iv.iv = get_iv_INA260( 0 ); // Demo: rail28
 
-    batt_temp = mmap_adc_read_raw( 0 );
+    batt_temp = (float) mmap_adc_read_raw( 0 ) * 1.8 * 1000000 / 4095 / 994 - 273.2 + TEMP_CALIBRATION;
+
+    // Current conversion: i * 0.04/(8*2)
+    // Voltage conversion: v * 0.008/8
+    // 28V rail, current & voltage: i or v * 0.00125
 
     /**************************************************************************
      *                       Battery: Over-voltage Check                      *
@@ -161,15 +200,17 @@ int main() {
 
      // If battery voltage is too low, open PCM switch
       if( batt_iv.v < BATT_UNDER_VOLTAGE ) {
-        for (int i : PDM_EN) {
-          gpio_set_value( i, 0 );
+        i = 0;
+        while( PDM_EN[i] != NULL ) {
+          gpio_set_value( PDM_EN[i++], LOW );
         }
       }
       else {
 
         // TODO we need to figure out a turn-on PCM after under voltage
-        for (int i : PDM_EN) {
-          gpio_set_value( i, 1 );
+        i = 0;
+        while( PDM_EN[i] != NULL ) {
+          gpio_set_value( PDM_EN[i++], HIGH );
         }
       }
 
@@ -184,26 +225,26 @@ int main() {
      // internal static counter. If after 3 seconds it's still latched, we have
      // a permanent fault.
 
-      // if there is an over current on any rails, disable the rail, if not, keep them on
-      // if (rail33_i > 33RAIL_OVER_CURRENT)
-          // set_pdm_en( 0, 0 );
-      // else
-          // set_pdm_en( 0, 1 );
-
-      // if (rail5_i > 5RAIL_OVER_CURRENT)
-          // set_pdm_en( 1, 0 );
-      // else
-          // set_pdm_en( 1, 1 );
-
-      // if (rail12_i > 12RAIL_OVER_CURRENT)
-          // set_pdm_en( 2, 0 );
-      // else
-          // set_pdm_en( 2, 1 );
-
-      // if (rail28_i > 28RAIL_OVER_CURRENT)
-          // set_pdm_en( 3, 0 );
-      // else
-          // set_pdm_en( 3, 1 );
+     i = 0;
+     while( PDM_FAULT[i] != NULL ) {
+       if( gpio_get_value( PDM_FAULT[i] ) != 0 ) {
+         if( faults[i].fault_count < 3 ) {
+           // Attempt to unlatch
+           gpio_set_value( PDM_EN[i], 0 );
+     			 usleep( 1000 );
+     			 gpio_set_value( PDM_EN[i], 1 );
+           faults[i].fault_count += 1;
+         }
+         else {
+           // PERMANENT FAULT! TODO SEND TO MISSION CONTROL! But only do it once.
+           gpio_set_value( PDM_EN[i], 0 );
+         }
+       }
+       else {
+         faults[i].fault_count = 0;
+       }
+       i += 1;
+     }
 
     /**************************************************************************
      *                       Battery Temperature Check                        *
