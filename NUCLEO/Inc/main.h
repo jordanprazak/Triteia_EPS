@@ -45,8 +45,8 @@
 #define B1_GPIO_Port GPIOC
 #define PL13_FLT_Pin GPIO_PIN_1
 #define PL13_FLT_GPIO_Port GPIOC
-#define PL10_EN_Pin GPIO_PIN_2
-#define PL10_EN_GPIO_Port GPIOC
+#define HEATER_EN_Pin GPIO_PIN_2
+#define HEATER_EN_GPIO_Port GPIOC
 #define PL12_EN_Pin GPIO_PIN_3
 #define PL12_EN_GPIO_Port GPIOC
 #define BCR_OUT_EN_Pin GPIO_PIN_1

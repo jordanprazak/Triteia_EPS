@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/jorda_000/Documents/GitHub/Triteia_EPS/nucleo/Inc
+HeaderPath=C:/Users/jorda_000/Documents/GitHub/Triteia_EPS/NUCLEO/Inc
 HeaderFiles=stm32l4xx_it.h;stm32l4xx_hal_conf.h;main.h;
-SourcePath=C:/Users/jorda_000/Documents/GitHub/Triteia_EPS/nucleo/Src
+SourcePath=C:/Users/jorda_000/Documents/GitHub/Triteia_EPS/NUCLEO/Src
 SourceFiles=stm32l4xx_it.h;stm32l4xx_hal_conf.h;main.h;stm32l4xx_it.c;stm32l4xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]

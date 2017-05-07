@@ -283,13 +283,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, HEATER_EN_Pin|PL7_EN_Pin|PCM_IN_EN_Pin|BCR1_EN_Pin 
+                          |BCR2_EN_Pin|BCR3_EN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, BCR_OUT_EN_Pin|PL13_EN_Pin|PL12_EN_Pin|PL11_EN_Pin 
                           |PL10_EN_Pin|PL9_EN_Pin|PL8_EN_Pin|BCR4_EN_Pin 
                           |TEST_LED_Pin|STATUS_LED_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, PL7_EN_Pin|PCM_IN_EN_Pin|BCR1_EN_Pin|BCR2_EN_Pin 
-                          |BCR3_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, PL5_EN_Pin|PL4_EN_Pin|PL3_EN_Pin|PL2_EN_Pin 
@@ -304,6 +304,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : HEATER_EN_Pin PL7_EN_Pin PCM_IN_EN_Pin BCR1_EN_Pin 
+                           BCR2_EN_Pin BCR3_EN_Pin */
+  GPIO_InitStruct.Pin = HEATER_EN_Pin|PL7_EN_Pin|PCM_IN_EN_Pin|BCR1_EN_Pin 
+                          |BCR2_EN_Pin|BCR3_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pins : BCR_OUT_EN_Pin PL13_EN_Pin PL12_EN_Pin PL11_EN_Pin 
                            PL10_EN_Pin PL9_EN_Pin PL8_EN_Pin BCR4_EN_Pin 
                            TEST_LED_Pin STATUS_LED_Pin */
@@ -314,15 +323,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PL7_EN_Pin PCM_IN_EN_Pin BCR1_EN_Pin BCR2_EN_Pin 
-                           BCR3_EN_Pin */
-  GPIO_InitStruct.Pin = PL7_EN_Pin|PCM_IN_EN_Pin|BCR1_EN_Pin|BCR2_EN_Pin 
-                          |BCR3_EN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PL5_EN_Pin PL4_EN_Pin PL3_EN_Pin PL2_EN_Pin 
                            PL1_EN_Pin PCM1_EN_Pin PCM2_EN_Pin PCM3_EN_Pin 
@@ -364,6 +364,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
+while ()
+{
+	wait(500);
+}
 
 /* USER CODE END 4 */
 

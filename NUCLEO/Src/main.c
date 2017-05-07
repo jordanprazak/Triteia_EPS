@@ -53,6 +53,13 @@ static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
+
+
+
+
+
+
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -78,7 +85,7 @@ int main(void)
   MX_GPIO_Init();
 
   /* USER CODE BEGIN 2 */
-
+	HAL_GPIO_WritePin(GPIOA, LD2_Pin, GPIO_PIN_SET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -86,7 +93,8 @@ int main(void)
   while (1)
   {
   /* USER CODE END WHILE */
-
+		HAL_Delay(500);
+		HAL_GPIO_TogglePin(GPIOA, LD2_Pin);	
   /* USER CODE BEGIN 3 */
 
   }
@@ -179,7 +187,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, PL10_EN_Pin|PL12_EN_Pin|PL7_EN_Pin|PL6_EN_Pin 
+  HAL_GPIO_WritePin(GPIOC, HEATER_EN_Pin|PL12_EN_Pin|PL7_EN_Pin|PL6_EN_Pin 
                           |PCM_IN_EN_Pin|BCR1_EN_Pin|GPIO_PIN_8|BCR3_EN_Pin 
                           |PL2_FLT_Pin|PL3_FLT_Pin|PL4_FLT_Pin, GPIO_PIN_RESET);
 
@@ -210,10 +218,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(PL13_FLT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PL10_EN_Pin PL12_EN_Pin PL7_EN_Pin PL6_EN_Pin 
+  /*Configure GPIO pins : HEATER_EN_Pin PL12_EN_Pin PL7_EN_Pin PL6_EN_Pin 
                            PCM_IN_EN_Pin BCR1_EN_Pin PC8 BCR3_EN_Pin 
                            PL2_FLT_Pin PL3_FLT_Pin PL4_FLT_Pin */
-  GPIO_InitStruct.Pin = PL10_EN_Pin|PL12_EN_Pin|PL7_EN_Pin|PL6_EN_Pin 
+  GPIO_InitStruct.Pin = HEATER_EN_Pin|PL12_EN_Pin|PL7_EN_Pin|PL6_EN_Pin 
                           |PCM_IN_EN_Pin|BCR1_EN_Pin|GPIO_PIN_8|BCR3_EN_Pin 
                           |PL2_FLT_Pin|PL3_FLT_Pin|PL4_FLT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -282,7 +290,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**
