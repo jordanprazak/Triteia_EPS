@@ -41,6 +41,7 @@
 
 /* Private define ------------------------------------------------------------*/
 
+<<<<<<< HEAD
 #define PL10_FLT_Pin GPIO_PIN_13
 #define PL10_FLT_GPIO_Port GPIOC
 #define PL11_FLT_Pin GPIO_PIN_14
@@ -119,6 +120,84 @@
 #define PL8_FLT_GPIO_Port GPIOB
 #define PL9_FLT_Pin GPIO_PIN_9
 #define PL9_FLT_GPIO_Port GPIOB
+=======
+#define PL9_FLT_Pin GPIO_PIN_13
+#define PL9_FLT_GPIO_Port GPIOC
+#define PL11_FLT_Pin GPIO_PIN_14
+#define PL11_FLT_GPIO_Port GPIOC
+#define PL13_FLT_Pin GPIO_PIN_15
+#define PL13_FLT_GPIO_Port GPIOC
+#define PL1_FLT_Pin GPIO_PIN_1
+#define PL1_FLT_GPIO_Port GPIOC
+#define PL2_FLT_Pin GPIO_PIN_2
+#define PL2_FLT_GPIO_Port GPIOC
+#define PL3_FLT_Pin GPIO_PIN_3
+#define PL3_FLT_GPIO_Port GPIOC
+#define PL1_EN_Pin GPIO_PIN_1
+#define PL1_EN_GPIO_Port GPIOA
+#define PL2_EN_Pin GPIO_PIN_2
+#define PL2_EN_GPIO_Port GPIOA
+#define PL3_EN_Pin GPIO_PIN_3
+#define PL3_EN_GPIO_Port GPIOA
+#define PL4_EN_Pin GPIO_PIN_4
+#define PL4_EN_GPIO_Port GPIOA
+#define PL5_EN_Pin GPIO_PIN_5
+#define PL5_EN_GPIO_Port GPIOA
+#define PL6_EN_Pin GPIO_PIN_6
+#define PL6_EN_GPIO_Port GPIOA
+#define PL7_EN_Pin GPIO_PIN_7
+#define PL7_EN_GPIO_Port GPIOA
+#define PL4_FLT_Pin GPIO_PIN_4
+#define PL4_FLT_GPIO_Port GPIOC
+#define PL5_FLT_Pin GPIO_PIN_5
+#define PL5_FLT_GPIO_Port GPIOC
+#define PL10_EN_Pin GPIO_PIN_0
+#define PL10_EN_GPIO_Port GPIOB
+#define PL11_EN_Pin GPIO_PIN_1
+#define PL11_EN_GPIO_Port GPIOB
+#define PL12_EN_Pin GPIO_PIN_2
+#define PL12_EN_GPIO_Port GPIOB
+#define BCR_OUT_EN_Pin GPIO_PIN_10
+#define BCR_OUT_EN_GPIO_Port GPIOB
+#define PCM1_EN_Pin GPIO_PIN_11
+#define PCM1_EN_GPIO_Port GPIOB
+#define PCM2_EN_Pin GPIO_PIN_12
+#define PCM2_EN_GPIO_Port GPIOB
+#define PCM3_EN_Pin GPIO_PIN_13
+#define PCM3_EN_GPIO_Port GPIOB
+#define PCM4_EN_Pin GPIO_PIN_14
+#define PCM4_EN_GPIO_Port GPIOB
+#define PL12_FLT_Pin GPIO_PIN_15
+#define PL12_FLT_GPIO_Port GPIOB
+#define PL6_FLT_Pin GPIO_PIN_6
+#define PL6_FLT_GPIO_Port GPIOC
+#define PL7_FLT_Pin GPIO_PIN_7
+#define PL7_FLT_GPIO_Port GPIOC
+#define PL10_FLT_Pin GPIO_PIN_8
+#define PL10_FLT_GPIO_Port GPIOC
+#define PL8_EN_Pin GPIO_PIN_9
+#define PL8_EN_GPIO_Port GPIOC
+#define PL9_EN_Pin GPIO_PIN_15
+#define PL9_EN_GPIO_Port GPIOA
+#define PCM_IN_EN_Pin GPIO_PIN_10
+#define PCM_IN_EN_GPIO_Port GPIOC
+#define PL2_FLTC11_Pin GPIO_PIN_11
+#define PL2_FLTC11_GPIO_Port GPIOC
+#define PL8_FLT_Pin GPIO_PIN_12
+#define PL8_FLT_GPIO_Port GPIOC
+#define HEATER_EN_Pin GPIO_PIN_2
+#define HEATER_EN_GPIO_Port GPIOD
+#define PL13_EN_Pin GPIO_PIN_3
+#define PL13_EN_GPIO_Port GPIOB
+#define BCR1_EN_Pin GPIO_PIN_4
+#define BCR1_EN_GPIO_Port GPIOB
+#define BCR2_EN_Pin GPIO_PIN_5
+#define BCR2_EN_GPIO_Port GPIOB
+#define BCR3_EN_Pin GPIO_PIN_8
+#define BCR3_EN_GPIO_Port GPIOB
+#define BCR4_EN_Pin GPIO_PIN_9
+#define BCR4_EN_GPIO_Port GPIOB
+>>>>>>> aa3537df18abf17f9d5c71dc55a3f166a7db6b69
 
 /* USER CODE BEGIN Private defines */
 
