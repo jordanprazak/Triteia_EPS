@@ -283,7 +283,13 @@ void main() {
 	//wait 15 seconds for power up
 	printf("\n\n\n\n\n\n\n\n\n");
 	int timer;
-	for(timer = 1; timer > 0; timer--) {
+	for(timer = 2; timer > 0; timer--) {
+		printf("BCR on in %d seconds...\n", timer);
+		sleep(1);
+	}	
+	gpio_set_value(BCR_OUT_EN,1);
+
+	for(timer = 15; timer > 0; timer--) {
 		printf("Power on in %d seconds...\n", timer);
 		sleep(1);
 	}	
@@ -291,7 +297,7 @@ void main() {
 	
 	
 	gpio_set_value(PCM_IN_EN,1);
-	gpio_set_value(BCR_OUT_EN,1);
+	
 	gpio_set_value(PDM0_EN,1);
 	gpio_set_value(PDM1_EN,1);
 	gpio_set_value(PDM2_EN,1);
@@ -414,7 +420,7 @@ void main() {
 				PDM0_fault_count++;
 			}
 			//permanently disable PDM if 3 attempts are made
-			else gpio_set_value(PDM0_EN,0);
+			//else gpio_set_value(PDM0_EN,0);
 			
 		}
 		else PDM0_fault_count = 0;
@@ -429,7 +435,7 @@ void main() {
 				PDM1_fault_count++;
 			}
 			//permanently disable PDM if 3 attempts are made
-			else gpio_set_value(PDM1_EN,0);
+			//else gpio_set_value(PDM1_EN,0);
 			
 		}
 		else PDM1_fault_count = 0;
@@ -439,27 +445,32 @@ void main() {
 			if (PDM2_fault_count < 3) {
 				//unlatch PDM
 				gpio_set_value(PDM2_EN,0);
-				usleep(1000);
+				usleep(1000000);
 				gpio_set_value(PDM2_EN,1);
 				PDM2_fault_count++;
 			}
 			//permanently disable PDM if 3 attempts are made
-			else gpio_set_value(PDM2_EN,0);
+			//else gpio_set_value(PDM2_EN,0);
 			
 		}
-		else PDM2_fault_count = 0;
+		else {
+			PDM2_fault_count = 0;
+			gpio_set_value(PDM2_EN,0);
+				usleep(1000000);
+				gpio_set_value(PDM2_EN,1);
+		}
 		
 		//unlatch PDM if the fault_count pin is high
 		if (EPS_packet.PDM3 == 1) {
 			if (PDM3_fault_count < 3) {
 				//unlatch PDM
 				gpio_set_value(PDM3_EN,0);
-				usleep(1000);
+				usleep(100000);
 				gpio_set_value(PDM3_EN,1);
 				PDM3_fault_count++;
 			}
 			//permanently disable PDM if 3 attempts are made
-			else gpio_set_value(PDM3_EN,0);
+			//else gpio_set_value(PDM3_EN,0);
 			
 		}
 		else PDM3_fault_count = 0;
@@ -474,7 +485,7 @@ void main() {
 				PDM4_fault_count++;
 			}
 			//permanently disable PDM if 3 attempts are made
-			else gpio_set_value(PDM4_EN,0);
+			//else gpio_set_value(PDM4_EN,0);
 			
 		}
 		else PDM4_fault_count = 0;
@@ -489,7 +500,7 @@ void main() {
 				PDM5_fault_count++;
 			}
 			//permanently disable PDM if 3 attempts are made
-			else gpio_set_value(PDM5_EN,0);
+			//else gpio_set_value(PDM5_EN,0);
 			
 		}
 		else PDM5_fault_count = 0;
@@ -504,8 +515,9 @@ void main() {
 				PDM1_fault_count++;
 			}
 			//permanently disable PDM if 3 attempts are made
-			else gpio_set_value(PDM5_EN,0);
-			
+			else {
+				gpio_set_value(PDM5_EN,0);
+			}
 		}
 		else PDM6_fault_count = 0;
 		

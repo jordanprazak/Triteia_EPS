@@ -1,4 +1,9 @@
-/*      C code to implement EPS protection Schemes        */
+/*SEDS TRITEIA POWER SYSTEMS TEAM prototype EPS code
+ *C code to implement EPS protection Schemes
+ *
+ *Authored by Jordan Prazak and David TU
+ *
+ */
 #include <stdio.h>
 #include <stdint.h>
 #include "EPS_proto.h"
@@ -31,6 +36,7 @@ int main() {
   struct PDM_fault faults[NUM_PDM] = { 0 };
 
   // Export GPIO pins for use
+  //TODO Dont need export, but we will need MUX
   gpio_export( EPS_OUT_EN );
   gpio_export( BCR_OUT_EN );
   int i = 0;

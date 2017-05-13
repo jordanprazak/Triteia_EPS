@@ -1,0 +1,25 @@
+--cpu=Cortex-M4.fp --branchpatch=sdcomp-29491-629360
+"nucleo\stm32l4xx_hal_msp.o"
+"nucleo\main.o"
+"nucleo\stm32l4xx_it.o"
+"nucleo\stm32l4xx_hal_flash.o"
+"nucleo\stm32l4xx_hal_flash_ramfunc.o"
+"nucleo\stm32l4xx_hal_cortex.o"
+"nucleo\stm32l4xx_hal_i2c_ex.o"
+"nucleo\stm32l4xx_hal_tim.o"
+"nucleo\stm32l4xx_hal_pwr_ex.o"
+"nucleo\stm32l4xx_hal_rcc_ex.o"
+"nucleo\stm32l4xx_hal_pwr.o"
+"nucleo\stm32l4xx_hal_i2c.o"
+"nucleo\stm32l4xx_hal_gpio.o"
+"nucleo\stm32l4xx_hal.o"
+"nucleo\stm32l4xx_hal_dma.o"
+"nucleo\stm32l4xx_hal_flash_ex.o"
+"nucleo\stm32l4xx_hal_tim_ex.o"
+"nucleo\stm32l4xx_hal_rcc.o"
+"nucleo\startup_stm32l476xx.o"
+"nucleo\system_stm32l4xx.o"
+--library_type=microlib --strict --scatter "nucleo\nucleo.sct"
+--diag_suppress=L6329 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "nucleo.map" -o nucleo\nucleo.axf
