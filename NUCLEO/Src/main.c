@@ -104,7 +104,7 @@ int main(void)
   while (1)
   {
   /* USER CODE END WHILE */
-
+	
   /* USER CODE BEGIN 3 */
 
   }
@@ -399,6 +399,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_UART_RxCpltCallback can be implemented in the user file.
+   */
+}
 /* USER CODE END 4 */
 
 /**

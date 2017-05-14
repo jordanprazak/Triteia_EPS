@@ -21,6 +21,8 @@ nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_gp
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_gpio_ex.h
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma.h
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h
+nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc.h
+nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc_ex.h
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash.h
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ex.h
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ramfunc.h
@@ -28,3 +30,5 @@ nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c_ex.h
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h
 nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h
+nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h
+nucleo\stm32l4xx_hal_rcc.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h
