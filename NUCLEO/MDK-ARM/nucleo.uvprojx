@@ -394,6 +394,16 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32l4xx_it.c</FilePath>
             </File>
+            <File>
+              <FileName>INA260.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\INA260.c</FilePath>
+            </File>
+            <File>
+              <FileName>INA260.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\INA260.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

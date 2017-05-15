@@ -3,8 +3,11 @@
 !.gitignore
 !*.h
 !*.c
+!*.axf
 !README.md
 !*.ioc
 !*.uvprojx
 !*.crf
 !*/
+
+NUCLEO/MDK-ARM/nucleo/*stm32*.crf
