@@ -7,9 +7,6 @@
 #include "stm32l4xx_hal.h"
 #include "INA260.h"
 
-/* I2C1 Handle */
-static I2C_HandleTypeDef I2C1Handle = {I2C1};
-
 /* Read data via I2C */
 HAL_StatusTypeDef i2c_read( I2C_HandleTypeDef * hi2c, uint8_t device_address, uint8_t register_address, uint8_t * out_data ) {
 
@@ -64,7 +61,7 @@ unsigned char getAddress( int chip_index ) {
 }
 
 /* Send configuration byte to chip (one-shot mode) */
-uint16_t sendConfig( int chip_index ) {
+uint16_t sendConfig( I2C_HandleTypeDef * I2C1Handle, int chip_index ) {
 	
   /* Get the address of the chip we want to read from */
 	unsigned char device_address = getAddress( chip_index );
@@ -75,7 +72,7 @@ uint16_t sendConfig( int chip_index ) {
 	write_buf[0] = CONFIG_MSB;
 	write_buf[1] = CONFIG_LSB;
 	
-	if( i2c_write( &I2C1Handle, device_address, register_address, write_buf, 2) != HAL_OK ) {
+	if( i2c_write( I2C1Handle, device_address, register_address, write_buf, 2) != HAL_OK ) {
 		
 		/* Handle error */
 		return -1;
@@ -85,7 +82,7 @@ uint16_t sendConfig( int chip_index ) {
 }
 
 /* Reads in current value from specific INA260 chip on I2C bus */
-uint16_t getCurrent( int chip_index ) {
+uint16_t getCurrent( I2C_HandleTypeDef * I2C1Handle, int chip_index ) {
 
   /* Get the address of the chip we want to read from */
   unsigned char device_address = getAddress( chip_index );
@@ -95,7 +92,7 @@ uint16_t getCurrent( int chip_index ) {
   uint8_t register_address = CURRENT_REGISTER;
 	
 	/* Read from register */
-	if( i2c_read( &I2C1Handle, device_address, register_address, read_buf ) != HAL_OK ) {
+	if( i2c_read( I2C1Handle, device_address, register_address, read_buf ) != HAL_OK ) {
 		
 		/* Handle error */
 	}
@@ -107,7 +104,7 @@ uint16_t getCurrent( int chip_index ) {
 }
 
 /* Reads in voltage value from specific INA260 chip on I2C bus */
-uint16_t getVoltage( int chip_index ) {
+uint16_t getVoltage( I2C_HandleTypeDef * I2C1Handle, int chip_index ) {
 
   /* Get the address of the chip we want to read from */
   unsigned char device_address = getAddress( chip_index );
@@ -117,7 +114,7 @@ uint16_t getVoltage( int chip_index ) {
   uint8_t register_address = VOLTAGE_REGISTER;
 	
 	/* Read from register */
-	if( i2c_read( &I2C1Handle, device_address, register_address, read_buf ) != HAL_OK ) {
+	if( i2c_read( I2C1Handle, device_address, register_address, read_buf ) != HAL_OK ) {
 		
 		/* Handle error */
 	}
