@@ -39,8 +39,8 @@
 
 /* Get an iv value from specific INA260 chip on I2C bus. Return data. */
 unsigned char getAddress( int chip_index );
-uint16_t getCurrent( int chip_index );
-uint16_t getVoltage( int chip_index );
-uint16_t sendConfig( int chip_index );
+uint16_t getCurrent( I2C_HandleTypeDef * hi2c, int chip_index );
+uint16_t getVoltage( I2C_HandleTypeDef * hi2c, int chip_index );
+uint16_t sendConfig( I2C_HandleTypeDef * hi2c, int chip_index );
 
 #endif /* INA260_H */
