@@ -13,14 +13,14 @@ HAL_StatusTypeDef i2c_read( I2C_HandleTypeDef * hi2c, uint8_t device_address, ui
 	HAL_StatusTypeDef error;
 	
 	/* Send address */
-	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address, &register_address, 1, 1000 ) ) != HAL_TIMEOUT ) {
+	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address << 1, &register_address, 1, 1000 ) ) != HAL_TIMEOUT ) {
 		
 		/* Handle transmit error */
 		return error;
 	}
 	
 	/* Receive bytes */
-	if( ( error = HAL_I2C_Master_Receive( hi2c, device_address, out_data, 1, 250 ) ) != HAL_TIMEOUT ) {
+	if( ( error = HAL_I2C_Master_Receive( hi2c, device_address << 1, out_data, 1, 1000 ) ) != HAL_TIMEOUT ) {
 		
 		/* Handle receive error */
 		return error;
@@ -43,7 +43,7 @@ HAL_StatusTypeDef i2c_write( I2C_HandleTypeDef * hi2c, uint8_t device_address, u
 	HAL_StatusTypeDef error;
 	
 	/* Send data */
-	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address, t_data, 1 + num_bytes, 250 ) ) != HAL_TIMEOUT ) {
+	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address << 1, t_data, 1 + num_bytes, 1000 ) ) != HAL_TIMEOUT ) {
 		
 		/* Handle transmit error */
 		return error;
@@ -72,9 +72,21 @@ uint16_t sendConfig( I2C_HandleTypeDef * I2C1Handle, int chip_index ) {
 	write_buf[0] = CONFIG_MSB;
 	write_buf[1] = CONFIG_LSB;
 	
-	if( i2c_write( I2C1Handle, device_address, register_address, write_buf, 2) != HAL_OK ) {
+	HAL_StatusTypeDef error;
+	
+	if( ( error = i2c_write( I2C1Handle, device_address, register_address, write_buf, 2) ) != HAL_OK ) {
 		
 		/* Handle error */
+		switch (error) {
+		case HAL_OK:
+			return 0;
+		case HAL_TIMEOUT:
+			return 1;
+		case HAL_BUSY:
+			return 2;
+		case HAL_ERROR:
+			return 3;
+		}
 	}
 	
 	return 0;
@@ -94,6 +106,7 @@ uint16_t getCurrent( I2C_HandleTypeDef * I2C1Handle, int chip_index ) {
 	if( i2c_read( I2C1Handle, device_address, register_address, read_buf ) != HAL_OK ) {
 		
 		/* Handle error */
+		return 0;
 	}
 
   /* To record data from i2c bus */
@@ -116,6 +129,7 @@ uint16_t getVoltage( I2C_HandleTypeDef * I2C1Handle, int chip_index ) {
 	if( i2c_read( I2C1Handle, device_address, register_address, read_buf ) != HAL_OK ) {
 		
 		/* Handle error */
+		return 0;
 	}
 
 	/* To record data from i2c bus */

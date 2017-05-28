@@ -35,7 +35,7 @@
 /* Generic read/write functions for INA260. Returns status value. */
 // Normal Linux i2c dev: read/write( file handler, R/W buffer, # bytes );
 //HAL_StatusTypeDef i2c_read( I2C_HandleTypeDef * hi2c, uint8_t device_address, uint8_t register_address, uint8_t * out_data );
-//HAL_StatusTypeDef i2c_write( I2C_HandleTypeDef * hi2c, uint8_t device_address, uint8_t register_address, uint8_t write_data );
+//HAL_StatusTypeDef i2c_write( I2C_HandleTypeDef * hi2c, uint8_t device_address, uint8_t register_address, uint8_t write_data[], int num_bytes );
 
 /* Get an iv value from specific INA260 chip on I2C bus. Return data. */
 unsigned char getAddress( int chip_index );
