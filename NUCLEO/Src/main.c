@@ -97,7 +97,7 @@ int main(void)
   MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */
-	HAL_I2C_Init(&hi2c1);
+	//HAL_I2C_Init(&hi2c1); //We shouldnt need to init because it is performed for us already
 	HAL_GPIO_WritePin(GPIOA, LD2_Pin, GPIO_PIN_SET);
   /* USER CODE END 2 */
 
