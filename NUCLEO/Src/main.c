@@ -105,42 +105,48 @@ int main(void)
 
   while (1)
   {
-		
-		/* I2C Test:
-			- The LD2 win output an abnormal signal if everything works correctly.
-		 */
+
+		// Data to be read in by I2C
 		uint16_t data;
 		
+		// Single-shot mode: send config byte so we can read from chip
 		if( sendConfig( &hi2c1, 3 ) == 0) {
-		//	HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 		}
 		HAL_Delay(2000);
+		
+		// Read current value
 		if( (data = getCurrent( &hi2c1, 3 )) != 0) {
-		//	HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 		}
 		HAL_Delay(500);
+
+		// Read voltage value
 		if( (data = getVoltage( &hi2c1, 3 )) != 0 ) {
-			/* Checked via 28V rail to make sure value is correct */
+
+			// Checked via 28V rail to make sure value is correct
 			if( data & 0xFF00 && (data != 0x6323) && (((data & 0xFF00) >> 8) > 70) && (((data & 0xFF00) >> 8) < 110)) {
-		//		HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+				HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 			}
 		}
 		HAL_Delay(500);
 		
-		// TODO: temperature conversion: reference voltage / 4096
-		uint32_t temp = HAL_ADC_GetValue( &hadc1 );
-		temp = temp * 3.3 * 1000000 / 4096 / 994 - 273.2 + 7.3;
-		if( temp > 0 ) {
-			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-		}
+		// Start ADC conversion
+		if( HAL_ADC_Start( &hadc1 ) == HAL_OK ) {
 			
-
-		
-		
-  /* USER CODE BEGIN 3 */
-
-  
-  /* USER CODE END 3 */
+			// Begin temperature conversion
+			if( HAL_ADC_PollForConversion( &hadc1, 1 ) == HAL_OK ) { // ADC_CONVERSION_TIMEOUT
+				uint32_t temp = HAL_ADC_GetValue( &hadc1 );
+				temp = temp * 3.3 * 1000000 / 4096 / 994 - 273.2 + 7.3;
+				if( temp > 0 && temp < 10 ) {
+					HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+				}
+			}
+			
+			// Stop ADC conversion
+			HAL_ADC_Stop( &hadc1 );
+			HAL_Delay(500);
+		}		
 	}
 
 }
