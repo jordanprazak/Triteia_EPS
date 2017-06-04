@@ -159,22 +159,20 @@ int main(void)
 *******************************************************************************/
     
 		// Trigger a measurement on the IV monitors
- 		config_INA3221( 0 );
- 		config_INA3221( 1 );
- 		config_INA3221( 2 );
- 		config_INA260( 0 );
- 		usleep(CONVERSION_TIME_INA3221);
+ 		sendConfig( &hi2c1,0);
+		sendConfig( &hi2c1,1);
+		sendConfig( &hi2c1,2);
+		sendConfig( &hi2c1,3);
+		sendConfig( &hi2c1,4);
+		sendConfig( &hi2c1,5);
+		sendConfig( &hi2c1,6);
+		sendConfig( &hi2c1,7);
+		sendConfig( &hi2c1,8);
+		sendConfig( &hi2c1,9);
+ 		HAL_DELAY(CONVERSION_TIME_INA3221);
 
-    solar0_iv.iv = get_iv_INA3221( 0, 0 ); // Demo: solar3
-  	solar1_iv.iv = get_iv_INA3221( 0, 1 ); // Demo: bcr
-  	solar2_iv.iv = get_iv_INA3221( 0, 2 ); // Demo: batt
-  	solar3_iv.iv = get_iv_INA3221( 1, 0 ); // Demo: rail3.3
-  	bcr_iv.iv = get_iv_INA3221( 1, 1 ); // Demo: rail5
-    batt_iv.iv = get_iv_INA3221( 1, 2 ); // Demo: rail12
-    rail33_iv.iv = get_iv_INA3221( 2, 0 ); // Demo: solar0
-    rail5_iv.iv = get_iv_INA3221( 2, 1 ); // Demo: solar1
-    rail12_iv.iv = get_iv_INA3221( 2, 2 ); // Demo: solar2
-    rail28_iv.iv = get_iv_INA260( 0 ); // Demo: rail28
+		EPS_status.solar1_i = getCurrent(&hi2c1,0);
+		EPS_status.solar1_v = getVoltage(&hi2c1,0);
 
     batt_temp = (float) mmap_adc_read_raw( 0 ) * 1.8 * 1000000 / 4095 / 994 - 273.2 + TEMP_CALIBRATION;
 
