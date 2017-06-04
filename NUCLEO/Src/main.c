@@ -1,3 +1,11 @@
+/*SEDS TRITEIA POWER SYSTEMS TEAM prototype EPS code
+ *C code to implement EPS protection Schemes
+ *STM32 version 0.0.1
+ *Authored by Jordan Prazak and David TU
+ *
+ */
+
+
 /**
   ******************************************************************************
   * File Name          : main.c
@@ -30,26 +38,22 @@
   *
   ******************************************************************************
   */
-/* Includes ------------------------------------------------------------------*/
+/* HAL Includes --------------------------------------------------------------*/
 #include "main.h"
 #include "stm32l4xx_hal.h"
+
+/*EPS includes ---------------------------------------------------------------*/
 #include "INA260.h"
 
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private variables ---------------------------------------------------------*/
+/* HAL Private variables -----------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
 
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
+/* EPS Private variables -----------------------------------------------------*/
 
-/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
