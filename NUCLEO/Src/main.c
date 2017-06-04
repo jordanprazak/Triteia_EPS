@@ -55,10 +55,8 @@ UART_HandleTypeDef huart1;
 
 /* EPS Private variables -----------------------------------------------------*/
 
-// Boolean to determine whether to send data (stream) to CHREC processor
-unsigned int streamenabled;
 
-/* Private function prototypes -----------------------------------------------*/
+/* HAL Private function prototypes -------------------------------------------*/
 void SystemClock_Config(void);
 void Error_Handler(void);
 static void MX_GPIO_Init(void);
@@ -66,32 +64,15 @@ static void MX_I2C1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_USART1_UART_Init(void);
 
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
+/* EPS Private function prototypes -------------------------------------------*/
 
 
-
-
-
-
-
-
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
+//TODO add correct indexes for INA260 current and voltage monitoring chips
 int main(void)
 {
+  /* MCU Configuration--------------------------------------------------------*/
 
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration----------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick*/
   HAL_Init();
 
   /* Configure the system clock */
@@ -103,57 +84,199 @@ int main(void)
   MX_ADC1_Init();
   MX_USART1_UART_Init();
 
-	/* Turn on LD2 */
-	HAL_GPIO_WritePin(GPIOA, LD2_Pin, GPIO_PIN_SET);
+  /* Turn on LD2 */
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin, GPIO_PIN_SET);
 
-  while (1)
-  {
+	/*Initialize System --------------------------------------------------------*/
+	//init variables
+	// Boolean to determine whether to send data (stream) to CHREC processor
+	int i;
+	unsigned int streamenabled;
+	EPS_status_t EPS_status;
+	
+	//configure IV monitors
+ 	sendConfig( &hi2c1,0);
+	sendConfig( &hi2c1,1);
+	sendConfig( &hi2c1,2);
+	sendConfig( &hi2c1,3);
+	sendConfig( &hi2c1,4);
+	sendConfig( &hi2c1,5);
+	sendConfig( &hi2c1,6);
+	sendConfig( &hi2c1,7);
+	sendConfig( &hi2c1,8);
+	sendConfig( &hi2c1,9);
+	
+	
+/*******************************************************************************
+*                          EPS Power-on sequence                               *
+*******************************************************************************/
 
-		// Data to be read in by I2C
-		uint16_t data;
+	// Measure battery voltage until it comes into an acceptable range
+	do {
+		sendConfig( &hi2c1,0);
+		EPS_status.batt_v = getVoltage(&hi2c1,0);
+	} while(EPS_status.batt_v < DEPLOYED_BATT_LOW || EPS_status.batt_v > DEPLOYED_BATT_HIGH );
+
+	// Next, check to see if there is voltage and current coming from one of the
+	// solar panels. If so, the cubesat is deployed.
+	do {
+		sendConfig( &hi2c1,0);
+		EPS_status.solar1_i = getCurrent(&hi2c1,0);
+		EPS_status.solar1_v = getVoltage(&hi2c1,0);
 		
-		// Single-shot mode: send config byte so we can read from chip
-		if( sendConfig( &hi2c1, 3 ) == 0) {
-			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-		}
-		HAL_Delay(2000);
+		sendConfig( &hi2c1,0);
+		EPS_status.solar2_i = getCurrent(&hi2c1,0);
+		EPS_status.solar2_v = getVoltage(&hi2c1,0);
 		
-		// Read current value
-		if( (data = getCurrent( &hi2c1, 3 )) != 0) {
-			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-		}
-		HAL_Delay(500);
-
-		// Read voltage value
-		if( (data = getVoltage( &hi2c1, 3 )) != 0 ) {
-
-			// Checked via 28V rail to make sure value is correct
-			if( data & 0xFF00 && (data != 0x6323) && (((data & 0xFF00) >> 8) > 70) && (((data & 0xFF00) >> 8) < 110)) {
-				HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-			}
-		}
-		HAL_Delay(500);
+		sendConfig( &hi2c1,0);
+		EPS_status.solar3_i = getCurrent(&hi2c1,0);
+		EPS_status.solar3_v = getVoltage(&hi2c1,0);
 		
-		// Start ADC conversion
-		if( HAL_ADC_Start( &hadc1 ) == HAL_OK ) {
-			
-			// Begin temperature conversion
-			if( HAL_ADC_PollForConversion( &hadc1, 1 ) == HAL_OK ) { // ADC_CONVERSION_TIMEOUT
-				uint32_t temp = HAL_ADC_GetValue( &hadc1 );
-				temp = temp * 3.3 * 1000000 / 4096 / 994 - 273.2 + 7.3;
-				if( temp > 0 && temp < 10 ) {
-					HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-				}
-			}
-			
-			// Stop ADC conversion
-			HAL_ADC_Stop( &hadc1 );
-			HAL_Delay(500);
-		}		
+		sendConfig( &hi2c1,0);
+		EPS_status.solar4_i = getCurrent(&hi2c1,0);
+		EPS_status.solar4_v = getVoltage(&hi2c1,0);
+		
+	} while( 
+			( EPS_status.solar1_v > DEPLOYED_SOLAR_V && EPS_status.solar1_i > DEPLOYED_SOLAR_I ) ||
+			( EPS_status.solar2_v > DEPLOYED_SOLAR_V && EPS_status.solar2_i > DEPLOYED_SOLAR_I ) ||
+			( EPS_status.solar3_v > DEPLOYED_SOLAR_V && EPS_status.solar3_i > DEPLOYED_SOLAR_I ) ||
+			( EPS_status.solar4_v > DEPLOYED_SOLAR_V && EPS_status.solar4_i > DEPLOYED_SOLAR_I )
+			 );
+
+	// Cubesat has been successfully deployed. Wait at least 15 seconds, and
+	// then power on all the loads.
+	HAL_DELAY(15000);
+
+	HAL_GPIO_WritePin(GPIOC, PCM_IN_EN_Pin, GPIO_PIN_SET); //enable EPS output
+	
+	
+
 	}
 
-}
+	
+/*******************************************************************************
+*             Voltage, Current, and Temperature Monitoring                     *
+*******************************************************************************/
+    
+		// Trigger a measurement on the IV monitors
+ 		config_INA3221( 0 );
+ 		config_INA3221( 1 );
+ 		config_INA3221( 2 );
+ 		config_INA260( 0 );
+ 		usleep(CONVERSION_TIME_INA3221);
 
+    solar0_iv.iv = get_iv_INA3221( 0, 0 ); // Demo: solar3
+  	solar1_iv.iv = get_iv_INA3221( 0, 1 ); // Demo: bcr
+  	solar2_iv.iv = get_iv_INA3221( 0, 2 ); // Demo: batt
+  	solar3_iv.iv = get_iv_INA3221( 1, 0 ); // Demo: rail3.3
+  	bcr_iv.iv = get_iv_INA3221( 1, 1 ); // Demo: rail5
+    batt_iv.iv = get_iv_INA3221( 1, 2 ); // Demo: rail12
+    rail33_iv.iv = get_iv_INA3221( 2, 0 ); // Demo: solar0
+    rail5_iv.iv = get_iv_INA3221( 2, 1 ); // Demo: solar1
+    rail12_iv.iv = get_iv_INA3221( 2, 2 ); // Demo: solar2
+    rail28_iv.iv = get_iv_INA260( 0 ); // Demo: rail28
+
+    batt_temp = (float) mmap_adc_read_raw( 0 ) * 1.8 * 1000000 / 4095 / 994 - 273.2 + TEMP_CALIBRATION;
+
+    // Current conversion: i * 0.04/(8*2)
+    // Voltage conversion: v * 0.008/8
+    // 28V rail, current & voltage: i or v * 0.00125
+
+    /**************************************************************************
+     *                       Battery: Over-voltage Check                      *
+     **************************************************************************/
+
+    // If battery voltage is too high, open BCR switch
+    if( batt_iv.v > BATT_OVER_VOLTAGE ) {
+      gpio_set_value( BCR_OUT_EN, 0 );
+    }
+    else {
+
+      // TODO we need to figure out a turn-on BCR voltage after over voltage
+      gpio_set_value( BCR_OUT_EN, 1 );
+    }
+
+    /**************************************************************************
+     *                       Battery: Under-voltage Check                     *
+     **************************************************************************/
+
+     // If battery voltage is too low, open PCM switch
+      if( batt_iv.v < BATT_UNDER_VOLTAGE ) {
+        i = 0;
+        while( PDM_EN[i] != NULL ) {
+          gpio_set_value( PDM_EN[i++], LOW );
+        }
+      }
+      else {
+
+        // TODO we need to figure out a turn-on PCM after under voltage
+        i = 0;
+        while( PDM_EN[i] != NULL ) {
+          gpio_set_value( PDM_EN[i++], HIGH );
+        }
+      }
+
+    /**************************************************************************
+     *                     Power Rails: Over-current Check                    *
+     **************************************************************************/
+
+     // TODO
+     // So technically, we have control of every payload.
+     // Since the re-latching time is very quick, it will have no effect with
+     // the 1 Hz loop code checking 3 times (3 seconds). We will need an
+     // internal static counter. If after 3 seconds it's still latched, we have
+     // a permanent fault.
+
+     i = 0;
+     while( PDM_FAULT[i] != NULL ) {
+       if( gpio_get_value( PDM_FAULT[i] ) != 0 ) {
+         if( faults[i].fault_count < 3 ) {
+           // Attempt to unlatch
+           gpio_set_value( PDM_EN[i], 0 );
+     			 usleep( 1000 );
+     			 gpio_set_value( PDM_EN[i], 1 );
+           faults[i].fault_count += 1;
+         }
+         else {
+           // PERMANENT FAULT! TODO SEND TO MISSION CONTROL! But only do it once.
+           gpio_set_value( PDM_EN[i], 0 );
+         }
+       }
+       else {
+         faults[i].fault_count = 0;
+       }
+       i += 1;
+     }
+
+    /**************************************************************************
+     *                       Battery Temperature Check                        *
+     **************************************************************************/
+
+      // If the battery temperature is too low, turn on heater until the
+      // desired temperature is reached.
+      if( batt_temp < HEATER_ON_TEMP ) {
+        gpio_set_value( HEATER_EN, 1 );
+      }
+      else if( batt_temp > HEATER_OFF_TEMP ) {
+        gpio_set_value( HEATER_EN, 0 );
+      }
+
+    /**************************************************************************
+     *                     Sending Data to CHREC processor                    *
+     **************************************************************************/
+  	//send data is unused for the subsystem prototype
+      // if the stream is enabled, send data to CHREK processor
+      //this process may run on a separate timer instead
+      //if (streamenabled==1)
+          //send_data();
+
+    // Sample at a rate of 1 Hz
+  	usleep(1000000);
+  }
+
+  return EXIT_SUCCESS;
+}
+}
 /** System Clock Configuration
 */
 void SystemClock_Config(void)
