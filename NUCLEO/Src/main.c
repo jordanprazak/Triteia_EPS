@@ -44,6 +44,7 @@
 
 /*EPS includes ---------------------------------------------------------------*/
 #include "INA260.h"
+#include "EPS.h"
 
 /* HAL Private variables -----------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
@@ -54,6 +55,8 @@ UART_HandleTypeDef huart1;
 
 /* EPS Private variables -----------------------------------------------------*/
 
+// Boolean to determine whether to send data (stream) to CHREC processor
+unsigned int streamenabled;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
