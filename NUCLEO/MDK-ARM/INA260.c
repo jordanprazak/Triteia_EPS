@@ -13,14 +13,14 @@ HAL_StatusTypeDef i2c_read( I2C_HandleTypeDef * hi2c, uint8_t device_address, ui
 	HAL_StatusTypeDef error;
 	
 	/* Send address */
-	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address << 1, &register_address, 1, 1000 ) ) != HAL_TIMEOUT ) {
+	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address << 1, &register_address, 1, 1000 ) ) != HAL_OK ) {
 		
 		/* Handle transmit error */
 		return error;
 	}
 	
 	/* Receive bytes */
-	if( ( error = HAL_I2C_Master_Receive( hi2c, device_address << 1, out_data, 1, 1000 ) ) != HAL_TIMEOUT ) {
+	if( ( error = HAL_I2C_Master_Receive( hi2c, device_address << 1, out_data, 1, 1000 ) ) != HAL_OK ) {
 		
 		/* Handle receive error */
 		return error;
@@ -44,7 +44,7 @@ HAL_StatusTypeDef i2c_write( I2C_HandleTypeDef * hi2c, uint8_t device_address, u
 	
 	/* Send data */
 	// Maybe try: HAL_I2C_Mem_Read(&I2cHandle, I2C_ADDRESS, REG_CHIP_ID, I2C_MEMADD_SIZE_8BIT, &aRxBuffer, 1, 10000);
-	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address << 1, t_data, 1 + num_bytes, 1000 ) ) != HAL_TIMEOUT ) {
+	if( ( error = HAL_I2C_Master_Transmit( hi2c, device_address << 1, t_data, 1 + num_bytes, 1000 ) ) != HAL_OK ) {
 		
 		/* Handle transmit error */
 		return error;

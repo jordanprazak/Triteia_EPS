@@ -96,33 +96,43 @@ int main(void)
   MX_ADC1_Init();
   MX_USART1_UART_Init();
 
-  /* USER CODE BEGIN 2 */
-	//HAL_I2C_Init(&hi2c1); //We shouldnt need to init because it is performed for us already
+	/* Turn on LD2 */
 	HAL_GPIO_WritePin(GPIOA, LD2_Pin, GPIO_PIN_SET);
-  /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1)
   {
-  /* USER CODE END WHILE */
+		
+		/* I2C Test:
+			- The LD2 win output an abnormal signal if everything works correctly.
+		 */
 		uint16_t data;
 		
 		if( sendConfig( &hi2c1, 3 ) == 0) {
-			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+		//	HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 		}
 		HAL_Delay(2000);
 		if( (data = getCurrent( &hi2c1, 3 )) != 0) {
-			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+		//	HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 		}
 		HAL_Delay(500);
 		if( (data = getVoltage( &hi2c1, 3 )) != 0 ) {
-			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+			/* Checked via 28V rail to make sure value is correct */
+			if( data & 0xFF00 && (data != 0x6323) && (((data & 0xFF00) >> 8) > 70) && (((data & 0xFF00) >> 8) < 110)) {
+		//		HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+			}
 		}
 		HAL_Delay(500);
-			
 		
+		// TODO: temperature conversion: reference voltage / 4096
+		uint32_t temp = HAL_ADC_GetValue( &hadc1 );
+		temp = temp * 3.3 * 1000000 / 4096 / 994 - 273.2 + 7.3;
+		if( temp > 0 ) {
+			HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+		}
+			
 
+		
+		
   /* USER CODE BEGIN 3 */
 
   
